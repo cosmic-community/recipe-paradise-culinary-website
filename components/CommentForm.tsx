@@ -15,7 +15,7 @@ export default function CommentForm({ recipeId, onSuccess, onCancel }: CommentFo
     user_name: '',
     user_email: '',
     comment_text: '',
-    rating: 0,
+    rating: undefined,
     recipe_id: recipeId
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -60,14 +60,14 @@ export default function CommentForm({ recipeId, onSuccess, onCancel }: CommentFo
           type="button"
           onClick={() => handleRatingClick(star)}
           className={`p-1 rounded transition-colors ${
-            star <= formData.rating 
+            formData.rating !== undefined && star <= formData.rating 
               ? 'text-yellow-400' 
               : 'text-gray-300 hover:text-yellow-200'
           }`}
         >
           <Star 
             className={`h-6 w-6 ${
-              star <= formData.rating ? 'fill-yellow-400' : ''
+              formData.rating !== undefined && star <= formData.rating ? 'fill-yellow-400' : ''
             }`} 
           />
         </button>
@@ -132,7 +132,7 @@ export default function CommentForm({ recipeId, onSuccess, onCancel }: CommentFo
             Rating (optional)
           </label>
           {renderStarRating()}
-          {formData.rating > 0 && (
+          {formData.rating !== undefined && formData.rating > 0 && (
             <p className="text-sm text-gray-600 mt-1">
               You rated this recipe {formData.rating} out of 5 stars
             </p>
