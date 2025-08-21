@@ -77,9 +77,9 @@ export interface Comment extends CosmicObject {
   };
 }
 
-// Type literals for select-dropdown values
-export type DifficultyLevel = 'easy' | 'medium' | 'hard';
-export type CommentStatus = 'pending' | 'approved' | 'rejected';
+// Type literals for select-dropdown values - using proper capitalization as defined in Cosmic content model
+export type DifficultyLevel = 'Easy' | 'Medium' | 'Hard';
+export type CommentStatus = 'Pending' | 'Approved' | 'Rejected';
 
 // API response types
 export interface CosmicResponse<T> {

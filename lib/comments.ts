@@ -7,7 +7,7 @@ export async function getCommentsByRecipe(recipeId: string): Promise<Comment[]> 
       .find({ 
         type: 'comments',
         'metadata.recipe': recipeId,
-        'metadata.status': 'approved'
+        'metadata.status': 'Approved'
       })
       .props(['id', 'title', 'slug', 'metadata', 'created_at'])
       .depth(1)
@@ -35,7 +35,7 @@ export async function getRatingSummary(recipeId: string): Promise<RatingSummary>
       .find({ 
         type: 'comments',
         'metadata.recipe': recipeId,
-        'metadata.status': 'approved'
+        'metadata.status': 'Approved'
       })
       .props(['metadata'])
     
@@ -104,7 +104,7 @@ export async function createComment(commentData: CommentFormData): Promise<Comme
         user_email: commentData.user_email,
         comment_text: commentData.comment_text,
         rating: commentData.rating || null,
-        status: 'pending' // All comments start as pending for moderation
+        status: 'Pending' // Use proper capitalization as defined in content model
       }
     }
 
