@@ -1,4 +1,3 @@
-// app/api/ratings/[recipeId]/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { getRatingSummary } from '@/lib/comments'
 

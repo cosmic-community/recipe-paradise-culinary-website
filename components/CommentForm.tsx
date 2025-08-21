@@ -35,13 +35,17 @@ export default function CommentForm({ recipeId, onSuccess, onCancel }: CommentFo
         body: JSON.stringify(formData),
       })
 
+      const responseData = await response.json()
+
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Failed to submit comment')
+        throw new Error(responseData.message || 'Failed to submit comment')
       }
 
+      // Show success message
+      alert('Thank you for your review! It will be published after moderation.')
       onSuccess()
     } catch (error) {
+      console.error('Comment submission error:', error)
       setError(error instanceof Error ? error.message : 'Failed to submit comment')
     } finally {
       setIsSubmitting(false)
@@ -49,7 +53,10 @@ export default function CommentForm({ recipeId, onSuccess, onCancel }: CommentFo
   }
 
   const handleRatingClick = (rating: number) => {
-    setFormData(prev => ({ ...prev, rating }))
+    setFormData(prev => ({ 
+      ...prev, 
+      rating: prev.rating === rating ? undefined : rating 
+    }))
   }
 
   const renderStarRating = () => (
@@ -72,6 +79,15 @@ export default function CommentForm({ recipeId, onSuccess, onCancel }: CommentFo
           />
         </button>
       ))}
+      {formData.rating !== undefined && (
+        <button
+          type="button"
+          onClick={() => setFormData(prev => ({ ...prev, rating: undefined }))}
+          className="ml-2 text-xs text-gray-500 hover:text-gray-700"
+        >
+          Clear
+        </button>
+      )}
     </div>
   )
 
@@ -108,6 +124,7 @@ export default function CommentForm({ recipeId, onSuccess, onCancel }: CommentFo
               onChange={(e) => setFormData(prev => ({ ...prev, user_name: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="Your name"
+              disabled={isSubmitting}
             />
           </div>
 
@@ -123,6 +140,7 @@ export default function CommentForm({ recipeId, onSuccess, onCancel }: CommentFo
               onChange={(e) => setFormData(prev => ({ ...prev, user_email: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="your@email.com"
+              disabled={isSubmitting}
             />
           </div>
         </div>
@@ -151,6 +169,7 @@ export default function CommentForm({ recipeId, onSuccess, onCancel }: CommentFo
             onChange={(e) => setFormData(prev => ({ ...prev, comment_text: e.target.value }))}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
             placeholder="Share your thoughts about this recipe..."
+            disabled={isSubmitting}
           />
         </div>
       </div>
@@ -159,7 +178,8 @@ export default function CommentForm({ recipeId, onSuccess, onCancel }: CommentFo
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+          disabled={isSubmitting}
+          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 rounded-lg transition-colors"
         >
           Cancel
         </button>

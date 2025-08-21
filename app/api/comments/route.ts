@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error creating comment:', error)
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { message: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }
     )
   }

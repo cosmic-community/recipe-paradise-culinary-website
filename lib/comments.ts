@@ -24,6 +24,7 @@ export async function getCommentsByRecipe(recipeId: string): Promise<Comment[]> 
     if (hasStatus(error) && error.status === 404) {
       return []
     }
+    console.error('Error fetching comments:', error)
     throw new Error('Failed to fetch comments')
   }
 }
@@ -86,27 +87,41 @@ export async function getRatingSummary(recipeId: string): Promise<RatingSummary>
         }
       }
     }
+    console.error('Error fetching rating summary:', error)
     throw new Error('Failed to fetch rating summary')
   }
 }
 
 export async function createComment(commentData: CommentFormData): Promise<Comment> {
   try {
-    const response = await cosmic.objects.insertOne({
+    // Create the comment with proper Cosmic structure
+    const commentPayload = {
       title: `Comment by ${commentData.user_name}`,
       type: 'comments',
       metadata: {
-        recipe: commentData.recipe_id,
+        recipe: commentData.recipe_id, // This should be the recipe object ID
         user_name: commentData.user_name,
         user_email: commentData.user_email,
         comment_text: commentData.comment_text,
         rating: commentData.rating || null,
         status: 'pending' // All comments start as pending for moderation
       }
-    })
+    }
+
+    console.log('Creating comment with payload:', commentPayload)
+    
+    const response = await cosmic.objects.insertOne(commentPayload)
+    
+    if (!response.object) {
+      throw new Error('No comment object returned from Cosmic')
+    }
     
     return response.object as Comment
   } catch (error) {
+    console.error('Cosmic comment creation error:', error)
+    if (error instanceof Error) {
+      throw new Error(`Failed to create comment: ${error.message}`)
+    }
     throw new Error('Failed to create comment')
   }
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Comment, RatingSummary } from '@/types'
 import { Star, MessageCircle, User } from 'lucide-react'
 import CommentForm from './CommentForm'
@@ -19,8 +19,10 @@ export default function CommentSection({
   const [comments, setComments] = useState<Comment[]>(initialComments)
   const [ratingSummary, setRatingSummary] = useState<RatingSummary>(initialRatingSummary)
   const [showCommentForm, setShowCommentForm] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   const handleCommentSubmitted = async () => {
+    setIsRefreshing(true)
     // Refresh comments and ratings after new comment is submitted
     try {
       const [commentsResponse, ratingsResponse] = await Promise.all([
@@ -28,15 +30,19 @@ export default function CommentSection({
         fetch(`/api/ratings/${recipeId}`)
       ])
 
-      if (commentsResponse.ok && ratingsResponse.ok) {
+      if (commentsResponse.ok) {
         const newComments = await commentsResponse.json()
-        const newRatingSummary = await ratingsResponse.json()
-        
         setComments(newComments)
+      }
+
+      if (ratingsResponse.ok) {
+        const newRatingSummary = await ratingsResponse.json()
         setRatingSummary(newRatingSummary)
       }
     } catch (error) {
       console.error('Failed to refresh comments:', error)
+    } finally {
+      setIsRefreshing(false)
     }
     
     setShowCommentForm(false)
@@ -86,7 +92,8 @@ export default function CommentSection({
         
         <button
           onClick={() => setShowCommentForm(true)}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 transition-colors"
+          disabled={showCommentForm}
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 transition-colors"
         >
           Write Review
         </button>
@@ -135,7 +142,7 @@ export default function CommentSection({
       {/* Comment Form Modal */}
       {showCommentForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-md w-full">
+          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
             <CommentForm
               recipeId={recipeId}
               onSuccess={handleCommentSubmitted}
@@ -147,6 +154,13 @@ export default function CommentSection({
 
       {/* Comments List */}
       <div className="space-y-6">
+        {isRefreshing && (
+          <div className="text-center py-4">
+            <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600"></div>
+            <p className="text-sm text-gray-600 mt-2">Refreshing comments...</p>
+          </div>
+        )}
+        
         {comments.length === 0 ? (
           <div className="text-center py-8">
             <MessageCircle className="h-12 w-12 text-gray-300 mx-auto mb-3" />
@@ -167,7 +181,7 @@ export default function CommentSection({
                   <div className="flex items-center justify-between mb-2">
                     <div>
                       <h4 className="text-sm font-semibold text-gray-900">
-                        {comment.metadata?.user_name}
+                        {comment.metadata?.user_name || 'Anonymous'}
                       </h4>
                       <p className="text-xs text-gray-500">
                         {formatDate(comment.created_at)}
