@@ -1,8 +1,11 @@
 // app/recipes/[slug]/page.tsx
 import { getRecipe } from '@/lib/recipes'
+import { getCommentsByRecipe, getRatingSummary } from '@/lib/comments'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import AuthorCard from '@/components/AuthorCard'
+import CommentSection from '@/components/CommentSection'
+import StarRating from '@/components/StarRating'
 import { Clock, Users, ChefHat } from 'lucide-react'
 import { Recipe } from '@/types'
 
@@ -17,6 +20,12 @@ export default async function RecipePage({ params }: RecipePageProps) {
   if (!recipe) {
     notFound()
   }
+
+  // Fetch comments and ratings for this recipe
+  const [comments, ratingSummary] = await Promise.all([
+    getCommentsByRecipe(recipe.id),
+    getRatingSummary(recipe.id)
+  ])
 
   const totalTime = (recipe.metadata?.prep_time || 0) + (recipe.metadata?.cook_time || 0)
 
@@ -38,9 +47,25 @@ export default async function RecipePage({ params }: RecipePageProps) {
               {recipe.metadata?.recipe_name || recipe.title}
             </h1>
             {recipe.metadata?.description && (
-              <p className="text-xl text-gray-200 max-w-2xl">
+              <p className="text-xl text-gray-200 max-w-2xl mb-4">
                 {recipe.metadata.description}
               </p>
+            )}
+            
+            {/* Rating Display */}
+            {ratingSummary.totalRatings > 0 && (
+              <div className="flex items-center gap-3">
+                <StarRating 
+                  rating={ratingSummary.averageRating}
+                  size="md"
+                  showCount={true}
+                  count={ratingSummary.totalRatings}
+                  className="text-white"
+                />
+                <span className="text-gray-200">
+                  {ratingSummary.averageRating.toFixed(1)} out of 5
+                </span>
+              </div>
             )}
           </div>
         </div>
@@ -49,9 +74,9 @@ export default async function RecipePage({ params }: RecipePageProps) {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {/* Main Content */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-8">
             {/* Recipe Stats */}
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <div className="bg-white rounded-lg shadow-sm p-6">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {recipe.metadata?.prep_time && (
                   <div className="text-center">
@@ -86,7 +111,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
 
             {/* Ingredients */}
             {recipe.metadata?.ingredients && (
-              <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+              <div className="bg-white rounded-lg shadow-sm p-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">Ingredients</h2>
                 <div 
                   className="recipe-content"
@@ -105,6 +130,13 @@ export default async function RecipePage({ params }: RecipePageProps) {
                 />
               </div>
             )}
+
+            {/* Comments Section */}
+            <CommentSection 
+              recipeId={recipe.id}
+              initialComments={comments}
+              initialRatingSummary={ratingSummary}
+            />
           </div>
 
           {/* Sidebar */}

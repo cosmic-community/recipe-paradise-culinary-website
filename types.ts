@@ -61,8 +61,25 @@ export interface Author extends CosmicObject {
   };
 }
 
+// Comment interface
+export interface Comment extends CosmicObject {
+  type: 'comments';
+  metadata: {
+    recipe?: Recipe;
+    user_name?: string;
+    user_email?: string;
+    comment_text?: string;
+    rating?: number;
+    status?: {
+      key: string;
+      value: string;
+    };
+  };
+}
+
 // Type literals for select-dropdown values
 export type DifficultyLevel = 'easy' | 'medium' | 'hard';
+export type CommentStatus = 'pending' | 'approved' | 'rejected';
 
 // API response types
 export interface CosmicResponse<T> {
@@ -70,6 +87,28 @@ export interface CosmicResponse<T> {
   total: number;
   limit: number;
   skip?: number;
+}
+
+// Comment form data
+export interface CommentFormData {
+  user_name: string;
+  user_email: string;
+  comment_text: string;
+  rating?: number;
+  recipe_id: string;
+}
+
+// Rating summary
+export interface RatingSummary {
+  averageRating: number;
+  totalRatings: number;
+  ratingDistribution: {
+    5: number;
+    4: number;
+    3: number;
+    2: number;
+    1: number;
+  };
 }
 
 // Utility types

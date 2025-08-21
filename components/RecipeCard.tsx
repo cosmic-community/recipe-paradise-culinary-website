@@ -1,13 +1,18 @@
 import Link from 'next/link'
 import { Recipe } from '@/types'
 import { Clock, Users, ChefHat } from 'lucide-react'
+import StarRating from './StarRating'
+import { getRatingSummary } from '@/lib/comments'
 
 interface RecipeCardProps {
   recipe: Recipe
 }
 
-export default function RecipeCard({ recipe }: RecipeCardProps) {
+export default async function RecipeCard({ recipe }: RecipeCardProps) {
   const totalTime = (recipe.metadata?.prep_time || 0) + (recipe.metadata?.cook_time || 0)
+  
+  // Get rating summary for this recipe
+  const ratingSummary = await getRatingSummary(recipe.id)
 
   return (
     <Link 
@@ -47,6 +52,17 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
           <p className="text-gray-600 text-sm mb-4 line-clamp-2">
             {recipe.metadata.description}
           </p>
+        )}
+
+        {/* Rating */}
+        {ratingSummary.totalRatings > 0 && (
+          <div className="mb-4">
+            <StarRating 
+              rating={ratingSummary.averageRating}
+              showCount={true}
+              count={ratingSummary.totalRatings}
+            />
+          </div>
         )}
 
         {/* Recipe Stats */}
