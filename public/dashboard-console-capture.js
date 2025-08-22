@@ -1,17 +1,9 @@
-(function() {
-  'use strict';
-  
-  // Only run if we're in an iframe (dashboard preview mode)
-  if (window.self === window.top) {
-    return;
-  }
-  
-  // Check if parent window exists and can receive messages
-  if (!window.parent) {
-    return;
-  }
-  
-  // Store original console methods
+(function () {
+  if (window.self === window.top) return;
+
+  const logs = [];
+  const MAX_LOGS = 500;
+
   const originalConsole = {
     log: console.log,
     warn: console.warn,
@@ -19,138 +11,111 @@
     info: console.info,
     debug: console.debug
   };
-  
-  // Function to safely send messages to parent
-  function sendToParent(data) {
+
+  function captureLog(level, args) {
+    const timestamp = new Date().toISOString();
+    const message = args.map(arg => {
+      if (typeof arg === 'object' && arg !== null) {
+        try {
+          return JSON.stringify(arg, (key, value) => {
+            if (typeof value === 'function') return '[Function]';
+            if (value instanceof Error) return value.toString();
+            return value;
+          }, 2);
+        } catch (e) {
+          return '[Object]';
+        }
+      }
+      return String(arg);
+    }).join(' ');
+
+    const logEntry = {
+      timestamp,
+      level,
+      message,
+      url: window.location.href
+    };
+
+    logs.push(logEntry);
+    if (logs.length > MAX_LOGS) {
+      logs.shift();
+    }
+
     try {
       window.parent.postMessage({
-        type: 'IFRAME_CONSOLE_LOG',
-        timestamp: new Date().toISOString(),
-        url: window.location.href,
-        ...data
+        type: 'console-log',
+        log: logEntry
       }, '*');
-    } catch (e) {
-      // Fail silently if parent can't receive messages
-    }
+    } catch (e) { }
   }
-  
-  // Function to serialize arguments (handle objects, functions, etc.)
-  function serializeArgs(args) {
-    return Array.from(args).map(arg => {
-      try {
-        if (arg === null) return 'null';
-        if (arg === undefined) return 'undefined';
-        if (typeof arg === 'function') return '[Function: ' + (arg.name || 'anonymous') + ']';
-        if (typeof arg === 'object') {
-          // Handle Error objects specially
-          if (arg instanceof Error) {
-            return {
-              name: arg.name,
-              message: arg.message,
-              stack: arg.stack
-            };
-          }
-          // Try to stringify other objects
-          return JSON.stringify(arg, null, 2);
-        }
-        return String(arg);
-      } catch (e) {
-        return '[Object: ' + Object.prototype.toString.call(arg) + ']';
-      }
-    });
-  }
-  
+
   // Override console methods
-  function overrideConsole(method, level) {
-    console[method] = function(...args) {
-      // Call original method first
-      originalConsole[method].apply(console, args);
-      
-      // Send to parent
-      sendToParent({
-        level: level,
-        method: method,
-        args: serializeArgs(args),
-        stack: new Error().stack
-      });
-    };
-  }
-  
-  // Override all console methods
-  overrideConsole('log', 'log');
-  overrideConsole('info', 'info');
-  overrideConsole('warn', 'warn');
-  overrideConsole('error', 'error');
-  overrideConsole('debug', 'debug');
-  
+  console.log = function(...args) {
+    originalConsole.log.apply(console, args);
+    captureLog('log', args);
+  };
+
+  console.warn = function(...args) {
+    originalConsole.warn.apply(console, args);
+    captureLog('warn', args);
+  };
+
+  console.error = function(...args) {
+    originalConsole.error.apply(console, args);
+    captureLog('error', args);
+  };
+
+  console.info = function(...args) {
+    originalConsole.info.apply(console, args);
+    captureLog('info', args);
+  };
+
+  console.debug = function(...args) {
+    originalConsole.debug.apply(console, args);
+    captureLog('debug', args);
+  };
+
   // Capture unhandled errors
   window.addEventListener('error', function(event) {
-    sendToParent({
-      level: 'error',
-      method: 'error',
-      args: [
-        'Unhandled Error:',
-        {
-          message: event.message,
-          filename: event.filename,
-          lineno: event.lineno,
-          colno: event.colno,
-          error: event.error ? {
-            name: event.error.name,
-            message: event.error.message,
-            stack: event.error.stack
-          } : null
-        }
-      ],
-      stack: event.error ? event.error.stack : null,
-      type: 'unhandled-error'
-    });
+    const errorArgs = [
+      'Unhandled Error:',
+      event.message,
+      `at ${event.filename}:${event.lineno}:${event.colno}`
+    ];
+    
+    if (event.error) {
+      errorArgs.push(event.error.stack || event.error.toString());
+    }
+    
+    captureLog('error', errorArgs);
   });
-  
+
   // Capture unhandled promise rejections
   window.addEventListener('unhandledrejection', function(event) {
-    sendToParent({
-      level: 'error',
-      method: 'error',
-      args: [
-        'Unhandled Promise Rejection:',
-        {
-          reason: event.reason,
-          promise: '[Promise]'
-        }
-      ],
-      stack: event.reason && event.reason.stack ? event.reason.stack : null,
-      type: 'unhandled-rejection'
-    });
+    const rejectionArgs = [
+      'Unhandled Promise Rejection:',
+      event.reason
+    ];
+    
+    captureLog('error', rejectionArgs);
   });
-  
-  // Send initial load message
-  window.addEventListener('load', function() {
-    sendToParent({
-      level: 'info',
-      method: 'info',
-      args: ['Dashboard iframe loaded successfully'],
-      type: 'iframe-loaded'
-    });
-  });
-  
-  // Send DOM ready message
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
-      sendToParent({
-        level: 'info',
-        method: 'info',
-        args: ['Dashboard iframe DOM ready'],
-        type: 'dom-ready'
-      });
-    });
-  } else {
-    sendToParent({
-      level: 'info',
-      method: 'info',
-      args: ['Dashboard iframe DOM ready (already loaded)'],
-      type: 'dom-ready'
-    });
+
+  // Send ready message
+  function sendReady() {
+    try {
+      window.parent.postMessage({
+        type: 'console-capture-ready',
+        url: window.location.href,
+        timestamp: new Date().toISOString()
+      }, '*');
+    } catch (e) { }
   }
+
+  // Send ready on load
+  window.addEventListener('load', sendReady);
   
+  // Send ready immediately if already loaded
+  if (document.readyState === 'complete') {
+    sendReady();
+  }
 })();
