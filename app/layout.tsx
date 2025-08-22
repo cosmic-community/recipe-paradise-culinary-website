@@ -23,6 +23,10 @@ export default function RootLayout({
 
   return (
     <html lang="en">
+      <head>
+        {/* Console capture script for dashboard debugging */}
+        <script src="/dashboard-console-capture.js" async></script>
+      </head>
       <body className={inter.className}>
         <Header />
         <main className="min-h-screen">
