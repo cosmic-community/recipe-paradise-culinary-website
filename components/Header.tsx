@@ -1,110 +1,88 @@
 'use client'
 
-import Link from 'next/link'
-import { ChefHat, Menu, X } from 'lucide-react'
 import { useState } from 'react'
+import Link from 'next/link'
+import { ChefHat, Menu, X, Search } from 'lucide-react'
 
 export default function Header() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen)
-  }
-
-  const closeMobileMenu = () => {
-    setIsMobileMenuOpen(false)
-  }
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
-    <header className="bg-white shadow-sm border-b sticky top-0 z-50">
+    <header className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link 
-            href="/" 
-            className="flex items-center gap-2 text-xl font-bold text-gray-900 hover:text-primary-600 transition-colors"
-            onClick={closeMobileMenu}
-          >
-            <ChefHat className="h-8 w-8 text-primary-500" />
-            Recipe Paradise
+          <Link href="/" className="flex items-center space-x-2">
+            <ChefHat className="h-8 w-8 text-primary-600" />
+            <span className="text-xl font-bold text-gray-900">Recipe Paradise</span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
-            <Link 
-              href="/" 
-              className="text-gray-600 hover:text-gray-900 font-medium transition-colors"
-            >
+          <nav className="hidden md:flex items-center space-x-8">
+            <Link href="/" className="text-gray-700 hover:text-primary-600 font-medium transition-colors">
+              Home
+            </Link>
+            <Link href="/recipes" className="text-gray-700 hover:text-primary-600 font-medium transition-colors">
               Recipes
             </Link>
-            <Link 
-              href="/categories/breakfast" 
-              className="text-gray-600 hover:text-gray-900 font-medium transition-colors"
-            >
-              Breakfast
+            <Link href="/categories" className="text-gray-700 hover:text-primary-600 font-medium transition-colors">
+              Categories
             </Link>
-            <Link 
-              href="/categories/appetizers" 
-              className="text-gray-600 hover:text-gray-900 font-medium transition-colors"
-            >
-              Appetizers
+            <Link href="/chefs" className="text-gray-700 hover:text-primary-600 font-medium transition-colors">
+              Chefs
             </Link>
-            <Link 
-              href="/categories/desserts" 
-              className="text-gray-600 hover:text-gray-900 font-medium transition-colors"
-            >
-              Desserts
-            </Link>
+            <button className="p-2 text-gray-700 hover:text-primary-600 transition-colors">
+              <Search className="h-5 w-5" />
+            </button>
           </nav>
 
           {/* Mobile menu button */}
           <div className="md:hidden">
-            <button 
-              onClick={toggleMobileMenu}
-              className="text-gray-600 hover:text-gray-900 p-2"
-              aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="p-2 text-gray-700 hover:text-primary-600 transition-colors"
             >
-              {isMobileMenuOpen ? (
-                <X className="h-6 w-6" />
-              ) : (
-                <Menu className="h-6 w-6" />
-              )}
+              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Navigation Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t bg-white">
-            <nav className="px-2 pt-2 pb-4 space-y-1">
-              <Link 
-                href="/" 
-                className="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md font-medium transition-colors"
-                onClick={closeMobileMenu}
+        {/* Mobile Navigation */}
+        {isMenuOpen && (
+          <div className="md:hidden py-4 border-t border-gray-200">
+            <nav className="flex flex-col space-y-4">
+              <Link
+                href="/"
+                className="text-gray-700 hover:text-primary-600 font-medium transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Home
+              </Link>
+              <Link
+                href="/recipes"
+                className="text-gray-700 hover:text-primary-600 font-medium transition-colors"
+                onClick={() => setIsMenuOpen(false)}
               >
                 Recipes
               </Link>
-              <Link 
-                href="/categories/breakfast" 
-                className="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md font-medium transition-colors"
-                onClick={closeMobileMenu}
+              <Link
+                href="/categories"
+                className="text-gray-700 hover:text-primary-600 font-medium transition-colors"
+                onClick={() => setIsMenuOpen(false)}
               >
-                Breakfast
+                Categories
               </Link>
-              <Link 
-                href="/categories/appetizers" 
-                className="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md font-medium transition-colors"
-                onClick={closeMobileMenu}
+              <Link
+                href="/chefs"
+                className="text-gray-700 hover:text-primary-600 font-medium transition-colors"
+                onClick={() => setIsMenuOpen(false)}
               >
-                Appetizers
+                Chefs
               </Link>
-              <Link 
-                href="/categories/desserts" 
-                className="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md font-medium transition-colors"
-                onClick={closeMobileMenu}
-              >
-                Desserts
-              </Link>
+              <button className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-colors">
+                <Search className="h-5 w-5" />
+                <span>Search</span>
+              </button>
             </nav>
           </div>
         )}

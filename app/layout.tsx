@@ -8,9 +8,16 @@ import CosmicBadge from '@/components/CosmicBadge'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Recipe Paradise - Culinary Website',
-  description: 'Discover delicious recipes from talented chefs around the world. Browse by category, difficulty, and cuisine type.',
-  keywords: 'recipes, cooking, chefs, food, culinary, kitchen, ingredients, cooking instructions',
+  title: 'Recipe Paradise | Delicious Recipes from Amazing Chefs',
+  description: 'Discover amazing recipes, cooking tips, and culinary inspiration from talented chefs around the world.',
+  icons: {
+    icon: [
+      {
+        url: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👨‍🍳</text></svg>',
+        type: 'image/svg+xml',
+      },
+    ],
+  },
 }
 
 export default function RootLayout({
@@ -18,22 +25,13 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  // Access environment variable on server side
-  const bucketSlug = process.env.COSMIC_BUCKET_SLUG as string
-
   return (
     <html lang="en">
-      <head>
-        {/* Console capture script for dashboard debugging */}
-        <script src="/dashboard-console-capture.js" async></script>
-      </head>
       <body className={inter.className}>
         <Header />
-        <main className="min-h-screen">
-          {children}
-        </main>
+        <main>{children}</main>
         <Footer />
-        <CosmicBadge bucketSlug={bucketSlug} />
+        <CosmicBadge bucketSlug={process.env.COSMIC_BUCKET_SLUG as string} />
       </body>
     </html>
   )
