@@ -1,71 +1,119 @@
-import Link from 'next/link'
 import { Recipe } from '@/types'
-import { Clock, Users } from 'lucide-react'
+import { Clock, Users, ChefHat } from 'lucide-react'
+import StarRating from './StarRating'
 
-interface HeroProps {
-  recipe: Recipe
+export interface HeroProps {
+  recipe: Recipe;
 }
 
 export default function Hero({ recipe }: HeroProps) {
-  const totalTime = (recipe.metadata?.prep_time || 0) + (recipe.metadata?.cook_time || 0)
+  const {
+    title,
+    metadata: {
+      description,
+      featured_image,
+      prep_time,
+      cook_time,
+      servings,
+      difficulty_level,
+      author,
+      category
+    }
+  } = recipe
+
+  const totalTime = (prep_time || 0) + (cook_time || 0)
 
   return (
-    <div className="relative h-96 md:h-[500px] bg-gray-900 overflow-hidden">
-      {recipe.metadata?.featured_image && (
-        <img 
-          src={`${recipe.metadata.featured_image.imgix_url}?w=1600&h=1000&fit=crop&auto=format,compress`}
-          alt={recipe.title}
-          className="absolute inset-0 w-full h-full object-cover opacity-70"
+    <section className="relative bg-gradient-to-r from-primary-600 to-primary-700 overflow-hidden">
+      {/* Background Image with Overlay */}
+      <div className="absolute inset-0">
+        <img
+          src={`${featured_image?.imgix_url}?w=1920&h=800&fit=crop&auto=format,compress`}
+          alt={title}
+          className="w-full h-full object-cover opacity-20"
+          width={1920}
+          height={800}
         />
-      )}
-      <div className="absolute inset-0 bg-black bg-opacity-50" />
-      
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
-        <div className="text-white max-w-2xl">
-          <div className="mb-4">
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-500 text-white">
-              Featured Recipe
-            </span>
-          </div>
-          
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            {recipe.metadata?.recipe_name || recipe.title}
+        <div className="absolute inset-0 bg-gradient-to-r from-primary-800/80 to-primary-600/80"></div>
+      </div>
+
+      {/* Content */}
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <div className="max-w-3xl">
+          {/* Category Badge */}
+          {category && (
+            <div className="mb-4">
+              <span className="inline-block px-4 py-2 text-sm font-medium text-white bg-white/20 rounded-full backdrop-blur-sm">
+                {category.metadata?.name || category.title}
+              </span>
+            </div>
+          )}
+
+          {/* Title */}
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+            {title}
           </h1>
-          
-          {recipe.metadata?.description && (
-            <p className="text-lg md:text-xl text-gray-200 mb-8 leading-relaxed">
-              {recipe.metadata.description}
+
+          {/* Description */}
+          {description && (
+            <p className="text-xl text-white/90 mb-8 leading-relaxed">
+              {description}
             </p>
           )}
 
-          <div className="flex items-center gap-6 mb-8">
+          {/* Recipe Meta */}
+          <div className="flex flex-wrap items-center gap-6 mb-8">
             {totalTime > 0 && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 text-white/90">
                 <Clock className="h-5 w-5" />
-                <span className="text-sm font-medium">{totalTime} minutes</span>
+                <span className="font-medium">{totalTime} minutes</span>
               </div>
             )}
-            {recipe.metadata?.servings && (
-              <div className="flex items-center gap-2">
+            
+            {servings && (
+              <div className="flex items-center gap-2 text-white/90">
                 <Users className="h-5 w-5" />
-                <span className="text-sm font-medium">{recipe.metadata.servings} servings</span>
+                <span className="font-medium">Serves {servings}</span>
               </div>
             )}
-            {recipe.metadata?.difficulty_level && (
-              <span className="px-3 py-1 rounded-full text-sm font-medium bg-white bg-opacity-20 text-white">
-                {recipe.metadata.difficulty_level.value}
-              </span>
+
+            {difficulty_level?.value && (
+              <div className="flex items-center gap-2 text-white/90">
+                <ChefHat className="h-5 w-5" />
+                <span className="font-medium">{difficulty_level.value}</span>
+              </div>
             )}
+
+            {/* Star Rating */}
+            <StarRating rating={0} showCount={false} size="md" theme="light" />
           </div>
 
-          <Link
-            href={`/recipes/${recipe.slug}`}
-            className="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 transition-colors"
-          >
-            View Recipe
-          </Link>
+          {/* Author */}
+          {author && (
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full overflow-hidden">
+                <img
+                  src={`${author.metadata?.profile_photo?.imgix_url}?w=96&h=96&fit=crop&auto=format,compress`}
+                  alt={author.metadata?.name || author.title}
+                  className="w-full h-full object-cover"
+                  width={48}
+                  height={48}
+                />
+              </div>
+              <div>
+                <p className="text-white font-medium">
+                  By {author.metadata?.name || author.title}
+                </p>
+                {author.metadata?.specialty_cuisine && (
+                  <p className="text-white/70 text-sm">
+                    {author.metadata.specialty_cuisine} Cuisine Specialist
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
-    </div>
+    </section>
   )
 }

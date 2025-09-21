@@ -2,111 +2,124 @@ import Link from 'next/link'
 import { Recipe } from '@/types'
 import { Clock, Users, ChefHat } from 'lucide-react'
 import StarRating from './StarRating'
-import { getRatingSummary } from '@/lib/comments'
 
-interface RecipeCardProps {
-  recipe: Recipe
+export interface RecipeCardProps {
+  recipe: Recipe;
+  showAuthor?: boolean;
 }
 
-export default async function RecipeCard({ recipe }: RecipeCardProps) {
-  const totalTime = (recipe.metadata?.prep_time || 0) + (recipe.metadata?.cook_time || 0)
-  
-  // Get rating summary for this recipe
-  const ratingSummary = await getRatingSummary(recipe.id)
+export default function RecipeCard({ recipe, showAuthor = true }: RecipeCardProps) {
+  const {
+    slug,
+    title,
+    metadata: {
+      description,
+      featured_image,
+      prep_time,
+      cook_time,
+      servings,
+      difficulty_level,
+      author,
+      category
+    }
+  } = recipe
+
+  const totalTime = (prep_time || 0) + (cook_time || 0)
 
   return (
-    <Link 
-      href={`/recipes/${recipe.slug}`}
-      className="group block bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
-    >
-      {/* Recipe Image */}
-      <div className="aspect-w-16 aspect-h-12 bg-gray-200">
-        {recipe.metadata?.featured_image ? (
-          <img 
-            src={`${recipe.metadata.featured_image.imgix_url}?w=600&h=400&fit=crop&auto=format,compress`}
-            alt={recipe.title}
-            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+    <Link href={`/recipes/${slug}`} className="group block">
+      <article className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+        {/* Recipe Image */}
+        <div className="aspect-video overflow-hidden">
+          <img
+            src={`${featured_image?.imgix_url}?w=800&h=450&fit=crop&auto=format,compress`}
+            alt={title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
+            width={800}
+            height={450}
           />
-        ) : (
-          <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-            <ChefHat className="h-12 w-12 text-gray-400" />
-          </div>
-        )}
-      </div>
-
-      {/* Recipe Content */}
-      <div className="p-6">
-        <div className="mb-3">
-          {recipe.metadata?.category && (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
-              {recipe.metadata.category.metadata?.name || recipe.metadata.category.title}
-            </span>
-          )}
         </div>
 
-        <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">
-          {recipe.metadata?.recipe_name || recipe.title}
-        </h3>
-
-        {recipe.metadata?.description && (
-          <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-            {recipe.metadata.description}
-          </p>
-        )}
-
-        {/* Rating */}
-        {ratingSummary.totalRatings > 0 && (
-          <div className="mb-4">
-            <StarRating 
-              rating={ratingSummary.averageRating}
-              showCount={true}
-              count={ratingSummary.totalRatings}
-            />
-          </div>
-        )}
-
-        {/* Recipe Stats */}
-        <div className="flex items-center justify-between text-sm text-gray-500">
-          <div className="flex items-center gap-4">
-            {totalTime > 0 && (
-              <div className="flex items-center gap-1">
-                <Clock className="h-4 w-4" />
-                <span>{totalTime}m</span>
-              </div>
-            )}
-            {recipe.metadata?.servings && (
-              <div className="flex items-center gap-1">
-                <Users className="h-4 w-4" />
-                <span>{recipe.metadata.servings}</span>
-              </div>
-            )}
-          </div>
-          
-          {recipe.metadata?.difficulty_level && (
-            <span className="text-xs font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-700">
-              {recipe.metadata.difficulty_level.value}
-            </span>
-          )}
-        </div>
-
-        {/* Author */}
-        {recipe.metadata?.author && (
-          <div className="mt-4 pt-4 border-t border-gray-100">
-            <div className="flex items-center gap-2">
-              {recipe.metadata.author.metadata?.profile_photo && (
-                <img 
-                  src={`${recipe.metadata.author.metadata.profile_photo.imgix_url}?w=60&h=60&fit=crop&auto=format,compress`}
-                  alt={recipe.metadata.author.metadata?.name || recipe.metadata.author.title}
-                  className="w-6 h-6 rounded-full object-cover"
-                />
-              )}
-              <span className="text-sm text-gray-600">
-                by {recipe.metadata.author.metadata?.name || recipe.metadata.author.title}
+        {/* Recipe Content */}
+        <div className="p-6">
+          {/* Category Badge */}
+          {category && (
+            <div className="mb-3">
+              <span className="inline-block px-3 py-1 text-xs font-medium text-primary-700 bg-primary-100 rounded-full">
+                {category.metadata?.name || category.title}
               </span>
             </div>
+          )}
+
+          {/* Recipe Title */}
+          <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors line-clamp-2">
+            {title}
+          </h3>
+
+          {/* Description */}
+          {description && (
+            <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+              {description}
+            </p>
+          )}
+
+          {/* Recipe Meta */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-4 text-sm text-gray-500">
+              {totalTime > 0 && (
+                <div className="flex items-center gap-1">
+                  <Clock className="h-4 w-4" />
+                  <span>{totalTime} min</span>
+                </div>
+              )}
+              
+              {servings && (
+                <div className="flex items-center gap-1">
+                  <Users className="h-4 w-4" />
+                  <span>{servings}</span>
+                </div>
+              )}
+
+              {difficulty_level?.value && (
+                <div className="flex items-center gap-1">
+                  <ChefHat className="h-4 w-4" />
+                  <span>{difficulty_level.value}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Star Rating Placeholder */}
+            <StarRating rating={0} showCount={false} size="sm" />
           </div>
-        )}
-      </div>
+
+          {/* Author */}
+          {showAuthor && author && (
+            <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
+              <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                <img
+                  src={`${author.metadata?.profile_photo?.imgix_url}?w=64&h=64&fit=crop&auto=format,compress`}
+                  alt={author.metadata?.name || author.title}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  width={32}
+                  height={32}
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {author.metadata?.name || author.title}
+                </p>
+                {author.metadata?.specialty_cuisine && (
+                  <p className="text-xs text-gray-500 truncate">
+                    {author.metadata.specialty_cuisine} Cuisine
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </article>
     </Link>
   )
 }
