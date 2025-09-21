@@ -1,39 +1,69 @@
-import { ExternalLink, Instagram, Twitter, Youtube, Globe } from 'lucide-react'
+import { Instagram, Twitter, Youtube, Globe } from 'lucide-react'
+import { Author } from '@/types'
 
-export interface SocialLinksProps {
-  instagram?: string | null;
-  twitter?: string | null;
-  youtube?: string | null;
-  website?: string | null;
+interface SocialLinksProps {
+  author: Author
+  size?: 'sm' | 'md' | 'lg'
 }
 
-export default function SocialLinks({ instagram, twitter, youtube, website }: SocialLinksProps) {
-  const links = [
-    { href: instagram, icon: Instagram, label: 'Instagram', color: 'text-pink-600' },
-    { href: twitter, icon: Twitter, label: 'Twitter', color: 'text-blue-500' },
-    { href: youtube, icon: Youtube, label: 'YouTube', color: 'text-red-600' },
-    { href: website, icon: Globe, label: 'Website', color: 'text-gray-600' },
-  ].filter(link => link.href)
+export default function SocialLinks({ author, size = 'md' }: SocialLinksProps) {
+  const sizeClasses = {
+    sm: 'w-4 h-4',
+    md: 'w-5 h-5', 
+    lg: 'w-6 h-6'
+  }
 
-  if (links.length === 0) {
+  const buttonSizeClasses = {
+    sm: 'p-1.5',
+    md: 'p-2',
+    lg: 'p-3'
+  }
+
+  const socialLinks = [
+    {
+      platform: 'Instagram',
+      url: author.metadata?.instagram || undefined,
+      icon: Instagram,
+      color: 'hover:text-pink-600'
+    },
+    {
+      platform: 'Twitter', 
+      url: author.metadata?.twitter || undefined,
+      icon: Twitter,
+      color: 'hover:text-blue-500'
+    },
+    {
+      platform: 'YouTube',
+      url: author.metadata?.youtube || undefined,
+      icon: Youtube,
+      color: 'hover:text-red-600'
+    },
+    {
+      platform: 'Website',
+      url: author.metadata?.website || undefined,
+      icon: Globe,
+      color: 'hover:text-green-600'
+    }
+  ].filter(link => link.url) // Only show links that have URLs
+
+  if (socialLinks.length === 0) {
     return null
   }
 
   return (
-    <div className="flex items-center gap-3">
-      {links.map(({ href, icon: Icon, label, color }) => (
+    <div className="flex items-center gap-2">
+      {socialLinks.map((link) => (
         <a
-          key={label}
-          href={href}
+          key={link.platform}
+          href={link.url}
           target="_blank"
           rel="noopener noreferrer"
-          className={`${color} hover:opacity-70 transition-opacity`}
-          aria-label={`Visit ${label}`}
+          className={`text-gray-400 ${link.color} transition-colors ${buttonSizeClasses[size]} rounded-full hover:bg-gray-100`}
+          aria-label={`Follow on ${link.platform}`}
         >
-          <Icon className="h-5 w-5" />
+          <link.icon className={sizeClasses[size]} />
         </a>
       ))}
-      <ExternalLink className="h-4 w-4 text-gray-400" />
     </div>
   )
 }
