@@ -17,12 +17,16 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const params = await searchParams
   const { q: query, category, difficulty, sort } = params
 
+  // Validate sort parameter to match expected type
+  const validSortOptions = ['newest', 'oldest', 'name', 'cook_time', 'difficulty'] as const
+  const sortBy = validSortOptions.includes(sort as any) ? sort as typeof validSortOptions[number] : 'newest'
+
   const [searchResults, categories] = await Promise.all([
     searchRecipes({
       query: query || '',
       category: category || '',
       difficulty: difficulty || '',
-      sortBy: sort || 'newest'
+      sortBy
     }),
     getCategories()
   ])
