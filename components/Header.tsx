@@ -2,10 +2,23 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { ChefHat, Menu, X, Search } from 'lucide-react'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const router = useRouter()
+
+  const handleQuickSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
+      setSearchQuery('')
+    } else {
+      router.push('/search')
+    }
+  }
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -31,9 +44,25 @@ export default function Header() {
             <Link href="/chefs" className="text-gray-700 hover:text-primary-600 font-medium transition-colors">
               Chefs
             </Link>
-            <button className="p-2 text-gray-700 hover:text-primary-600 transition-colors">
-              <Search className="h-5 w-5" />
-            </button>
+            
+            {/* Quick Search Form */}
+            <form onSubmit={handleQuickSearch} className="flex items-center">
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search recipes..."
+                  className="w-64 pl-3 pr-10 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+                <button
+                  type="submit"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-primary-600 transition-colors"
+                >
+                  <Search className="h-4 w-4" />
+                </button>
+              </div>
+            </form>
           </nav>
 
           {/* Mobile menu button */}
@@ -79,10 +108,25 @@ export default function Header() {
               >
                 Chefs
               </Link>
-              <button className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-colors">
-                <Search className="h-5 w-5" />
-                <span>Search</span>
-              </button>
+              
+              {/* Mobile Search */}
+              <form onSubmit={handleQuickSearch} className="pt-2">
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search recipes..."
+                    className="w-full pl-3 pr-10 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                  <button
+                    type="submit"
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-primary-600 transition-colors"
+                  >
+                    <Search className="h-4 w-4" />
+                  </button>
+                </div>
+              </form>
             </nav>
           </div>
         )}
